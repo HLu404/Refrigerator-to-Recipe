@@ -3,7 +3,7 @@ standardized classes the CNN predicts (e.g. "chicken").
 
 classify(text) -> ("class", name) | ("staple", None) | ("other", None)
   class  : one of the CNN classes
-  staple : pantry basics (salt, oil, spices...) ignored when counting missing ingredients
+  staple : salt, oil, spices and similar basics (stored separately; counted as missing like "other")
   other  : anything else; counts as a missing ingredient
 
 Within one ingredient string the class whose match ends furthest right wins (the head
@@ -24,7 +24,8 @@ STAPLE = re.compile(
     r"nutmeg|paprika|cumin|oregano|basil|thyme|parsley|cilantro|rosemary|sage|dill|bay leaf|"
     r"vinegar|spices?|seasoning|cayenne|mustard|ketchup|mayonnaise|soy sauce|worcestershire|"
     r"honey|cornstarch|corn starch|yeast|broth|stock|bouillon|extract|powder|flakes|cloves?|"
-    r"turmeric|curry|allspice|cardamom|chives?|mint)\b"
+    r"turmeric|curry|allspice|cardamom|chives?|mint|bay leaf|bay leaves|coriander|saffron|peppercorns?|"
+    r"fennel seeds?|sesame seeds?|cloves)\b"
 )
 
 # class -> (include regex, optional exclude regex). Order is irrelevant (see module docstring).

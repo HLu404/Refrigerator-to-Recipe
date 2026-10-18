@@ -1,4 +1,6 @@
-data/
 __pycache__/
 *.pth
 .venv/
+backend/data_cache/
+*.log
+.DS_Store

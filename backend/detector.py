@@ -1,7 +1,7 @@
 """Multi-item food detection for a single fridge photo.
 
     from detector import FoodDetector
-    det = FoodDetector("best_model.pth")
+    det = FoodDetector()
     det.detect(image_bytes_or_path_or_PIL)
     # -> [{"name": "tomato", "confidence": 0.91}, ...]  sorted by confidence
 
@@ -20,6 +20,8 @@ from PIL import Image, ImageOps
 
 from model import FoodCNN
 
+DEFAULT_CHECKPOINT = Path(__file__).parent / "artifacts" / "best_model.pth"
+
 
 def pick_device():
     if torch.cuda.is_available():
@@ -30,7 +32,7 @@ def pick_device():
 
 
 class FoodDetector:
-    def __init__(self, checkpoint="best_model.pth", device=None, threshold=None,
+    def __init__(self, checkpoint=DEFAULT_CHECKPOINT, device=None, threshold=None,
                  grid=2, crop_weight=0.9):
         """
         threshold:   None -> per-class thresholds tuned during training;
@@ -110,7 +112,7 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser(description="Detect foods in a fridge photo")
     ap.add_argument("image")
-    ap.add_argument("--checkpoint", default="best_model.pth")
+    ap.add_argument("--checkpoint", default=DEFAULT_CHECKPOINT)
     ap.add_argument("--threshold", type=float, default=None, help="global threshold override")
     ap.add_argument("--grid", type=int, default=2, help="crop grid size (0 = full image only)")
     a = ap.parse_args()

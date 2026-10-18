@@ -1,9 +1,9 @@
 """Train the multi-label FoodCNN on Clean_Data.csv + the flat image folder.
 
 Usage:
-    python train.py --images /Users/harry/Downloads/All --csv Clean_Data.csv
+    cd backend && ../.venv/bin/python train.py --images /Users/harry/Downloads/All
 
-Outputs (in --out-dir): best_model.pth, class_mapping.json
+Outputs (in --out-dir, default backend/artifacts): best_model.pth, class_mapping.json
 """
 import argparse
 import csv
@@ -20,6 +20,7 @@ from torchvision import transforms as T
 
 from model import FoodCNN
 
+ROOT = Path(__file__).resolve().parent.parent
 MEAN, STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
 
 
@@ -138,8 +139,8 @@ def run_epoch(net, loader, device, criterion, optimizer=None, scheduler=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--images", required=True, help="folder holding all images (flat)")
-    ap.add_argument("--csv", default="Clean_Data.csv")
-    ap.add_argument("--out-dir", default=".")
+    ap.add_argument("--csv", default=str(ROOT / "dataset" / "Clean_Data.csv"))
+    ap.add_argument("--out-dir", default=str(Path(__file__).parent / "artifacts"))
     ap.add_argument("--epochs", type=int, default=60)
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--lr", type=float, default=2e-3)
