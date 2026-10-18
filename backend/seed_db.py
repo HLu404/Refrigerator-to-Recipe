@@ -1,14 +1,5 @@
-"""Load TheMealDB recipes (dish image, measured ingredients, instructions) into PostgreSQL,
-with each ingredient also normalized to the CNN's food classes.
-
-Source: TheMealDB open recipe API, https://www.themealdb.com/api.php
-        (free development key "1"; intended for development/educational use)
-
-Usage:
-    createdb fridge_recipes
-    export DATABASE_URL=postgresql://localhost/fridge_recipes
-    cd backend && ../.venv/bin/python seed_db.py --reset
-"""
+# Load TheMealDB recipes (dish image, measured ingredients, instructions) into PostgreSQL,
+# with each ingredient also normalized to the CNN's food classes.
 import argparse
 import csv
 import json
@@ -27,11 +18,10 @@ from ingredient_map import classify
 
 ROOT = Path(__file__).resolve().parent.parent
 API = "https://www.themealdb.com/api/json/v1/1/search.php?f={}"
-EMOJI = re.compile(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]")  # written as escapes
+EMOJI = re.compile(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D]") 
 
 
 def clean_name(col):
-    # identical to train.py so names match the CNN's class names
     return col.strip().lower().replace(" ", "_")
 
 
@@ -46,12 +36,11 @@ def clean_text(s):
 
 
 def fetch_all(cache):
-    """Download every meal (search by first letter a-z) once and cache the JSON."""
     cache = Path(cache)
     if cache.exists():
         return json.loads(cache.read_text())
     try:
-        import certifi  # python.org builds on macOS ship without CA certs
+        import certifi 
         ctx = ssl.create_default_context(cafile=certifi.where())
     except ImportError:
         ctx = None
@@ -67,7 +56,7 @@ def fetch_all(cache):
     return list(meals.values())
 
 
-# ---- instruction parsing ---------------------------------------------------
+# instructions 
 _HEADER = re.compile(r"^(step\s*\d+|\d+)\s*[.:)\-]*$", re.I)
 _PREFIX = re.compile(r"^([*\u2022\-]+\s*)?(step\s*\d+\s*[.:)\-]*|\d+\s*[.)]|\d+\s+-)\s*", re.I)
 _SENT_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
@@ -78,7 +67,7 @@ def sentences(text):
     out, buf = [], ""
     for part in _SENT_END.split(text):
         buf = f"{buf} {part}".strip() if buf else part
-        if _ABBREV.search(buf):  # "350 F." / "10 min." are not sentence ends
+        if _ABBREV.search(buf):
             continue
         out.append(buf)
         buf = ""
@@ -87,18 +76,12 @@ def sentences(text):
     return out
 
 
-def split_steps(raw, target=110, max_len=420):
-    """Turn an instruction blob into a list of distinct, logical steps.
-
-    Blocks already separated by lines (or 'STEP n' markers) keep their own boundaries;
-    a wall of text is split by sentence and grouped into steps of ~`target` characters.
-    """
+def split_steps(raw, target=110, max_len=420): # split steps into numbers
     lines = [clean_text(l) for l in (raw or "").replace("\r", "\n").split("\n")]
     lines = [l for l in lines if l and not _HEADER.match(l)]
     lines = [_PREFIX.sub("", l).strip() for l in lines]
     lines = [l for l in lines if l]
 
-    # a short "For the sauce:" style heading is glued onto the line that follows
     merged, carry = [], ""
     for l in lines:
         if l.endswith(":") and len(l) < 45:
@@ -129,9 +112,9 @@ def split_steps(raw, target=110, max_len=420):
     return steps
 
 
-# ---- recipe parsing --------------------------------------------------------
+# recipe parsing
 def parse_meal(m, allowed):
-    """Return a dict ready to insert, or None if the recipe is unusable."""
+    # Return a dict ready to insert, or None if the recipe is unusable.
     title = clean_text(m.get("strMeal"))
     image = (m.get("strMealThumb") or "").strip()
     steps = split_steps(m.get("strInstructions"))
@@ -148,7 +131,7 @@ def parse_meal(m, allowed):
         if kind == "class":
             classes.add(cls)
         lines.append({"text": f"{measure} {name}".strip(), "kind": kind, "class": cls})
-    if not classes:  # nothing the CNN could ever match
+    if not classes: 
         return None
     return {
         "external_id": m["idMeal"], "title": title, "category": clean_text(m.get("strCategory")) or None,

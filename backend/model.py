@@ -1,4 +1,4 @@
-"""Custom CNN for multi-label food recognition (one sigmoid output per class)."""
+# Custom CNN for multi-label food recognition (one sigmoid output per class).
 import torch
 import torch.nn as nn
 
@@ -13,7 +13,6 @@ class ConvBlock(nn.Sequential):
 
 
 class ResBlock(nn.Module):
-    """Two 3x3 convs with a skip connection; downsamples when stride > 1."""
 
     def __init__(self, cin, cout, stride=1):
         super().__init__()
@@ -33,14 +32,6 @@ class ResBlock(nn.Module):
 
 
 class FoodCNN(nn.Module):
-    """Small ResNet-style CNN trained from scratch.
-
-    Input:  (B, 3, H, W) normalized image (224x224 by default, any size works
-            thanks to global pooling).
-    Output: (B, num_classes) raw logits. Apply sigmoid for per-class probabilities;
-            do NOT softmax - one fridge photo contains many items at once.
-    """
-
     def __init__(self, num_classes, widths=(32, 64, 128, 256, 384), dropout=0.3):
         super().__init__()
         w = widths

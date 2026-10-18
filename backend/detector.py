@@ -1,15 +1,4 @@
-"""Multi-item food detection for a single fridge photo.
-
-    from detector import FoodDetector
-    det = FoodDetector()
-    det.detect(image_bytes_or_path_or_PIL)
-    # -> [{"name": "tomato", "confidence": 0.91}, ...]  sorted by confidence
-
-The model is a multi-label classifier, so one forward pass already predicts every
-food present. To help with small items in a wide fridge shot, probabilities from
-the full image, its horizontal flip, and (optionally) a grid of overlapping
-crops are combined (full image averaged with flip; crops merged by max).
-"""
+# Multi-item food detection for a single fridge photo.
 import io
 import json
 from pathlib import Path
@@ -34,14 +23,6 @@ def pick_device():
 class FoodDetector:
     def __init__(self, checkpoint=DEFAULT_CHECKPOINT, device=None, threshold=None,
                  grid=2, crop_weight=0.9):
-        """
-        threshold:   None -> per-class thresholds tuned during training;
-                     float -> one global threshold for every class.
-        grid:        0/1 -> full image only; n>=2 -> also evaluate an n x n grid of
-                     overlapping crops (stronger recall on small items, ~(n*n+1)x cost).
-        crop_weight: crop probabilities are scaled by this before the max-merge, since
-                     crops see only part of the scene and are a bit less reliable.
-        """
         self.device = torch.device(device) if device else pick_device()
         ckpt = torch.load(checkpoint, map_location="cpu", weights_only=False)
         self.classes = ckpt["classes"]
@@ -57,7 +38,7 @@ class FoodDetector:
         self.net.load_state_dict(ckpt["model_state"])
         self.net.to(self.device).eval()
 
-    # ---- preprocessing -------------------------------------------------
+    # preprocessing
     @staticmethod
     def _load(image):
         if isinstance(image, Image.Image):
@@ -66,29 +47,27 @@ class FoodDetector:
             img = Image.open(io.BytesIO(image))
         else:
             img = Image.open(Path(image))
-        return ImageOps.exif_transpose(img).convert("RGB")  # phone photos carry rotation in EXIF
+        return ImageOps.exif_transpose(img).convert("RGB")  # as phone photos carry rotation in EXIF
 
     def _to_array(self, img):
-        # Same as training val transform: resize to (size, size), scale to [0,1], normalize.
         a = np.asarray(img.resize((self.size, self.size), Image.BILINEAR), dtype=np.float32) / 255.0
         return (a.transpose(2, 0, 1) - self.mean) / self.std
 
     def _crops(self, img):
-        """n x n grid of crops, each ~60% of the image per side, evenly spread (overlapping)."""
+        # n x n grid of crops, each ~60% of the image per side, evenly spread (overlapping).
         n, (w, h) = self.grid, img.size
         cw, ch = int(w * 0.6), int(h * 0.6)
         xs = np.linspace(0, w - cw, n).astype(int)
         ys = np.linspace(0, h - ch, n).astype(int)
         return [img.crop((x, y, x + cw, y + ch)) for y in ys for x in xs]
 
-    # ---- inference -----------------------------------------------------
+    # inference
     @torch.no_grad()
     def _probs(self, imgs):
         x = torch.from_numpy(np.stack([self._to_array(i) for i in imgs])).to(self.device)
         return torch.sigmoid(self.net(x)).cpu().numpy()
 
     def predict_probs(self, image):
-        """Return a (num_classes,) array of merged per-class probabilities."""
         img = self._load(image)
         full = self._probs([img, ImageOps.mirror(img)]).mean(0)
         if self.grid and self.grid >= 2:
@@ -98,7 +77,6 @@ class FoodDetector:
         return full
 
     def detect(self, image, top_k=None):
-        """List of {"name", "confidence"} for classes above their threshold, best first."""
         p = self.predict_probs(image)
         idx = np.where(p >= self.thresholds)[0]
         idx = idx[np.argsort(-p[idx])]

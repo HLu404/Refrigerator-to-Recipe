@@ -1,10 +1,5 @@
-"""FastAPI app: serves the frontend, runs the CNN on an optional fridge photo, merges it with
-typed ingredients, and returns ranked, paginated recipes.
-
-    cd backend && ../.venv/bin/python -m uvicorn main:app --reload
-Env: DATABASE_URL (default postgresql://localhost/fridge_recipes),
-     MODEL_PATH (default backend/artifacts/best_model.pth)
-"""
+# FastAPI app: serves the frontend, runs the CNN on an optional fridge photo, merges it with typed ingredients
+# returns ranked results for recipes.
 import io
 import os
 import re
@@ -34,17 +29,17 @@ def label(name):
 
 
 def parse_typed(text, classes):
-    """Split a comma/newline separated string into (recognized class names, unrecognized strings)."""
+    # Split a comma/newline separated string into (recognized class names, unrecognized strings).
     known, unknown = [], []
     for raw in re.split(r"[,;\n]", text or ""):
         item = re.sub(r"\s+", " ", raw).strip()
         if not item or len(item) > 60:
             continue
         key = item.lower().replace(" ", "_")
-        if key in classes:                       # exact class name, e.g. "sweet potato"
+        if key in classes:                       
             cls = key
         else:
-            kind, cls = classify(item, classes)  # "tomatoes", "chicken breast", ...
+            kind, cls = classify(item, classes)  
             if kind != "class":
                 cls = None
         if cls:
@@ -90,7 +85,6 @@ def health():
 
 @app.post("/api/analyze-fridge")
 def analyze_fridge(file: Optional[UploadFile] = File(None), ingredients: str = Form("")):
-    """Photo only, text only, or both. Returns the first page (5) of ranked recipes."""
     classes = app.state.classes
     typed, unrecognized = parse_typed(ingredients, classes)
     if len(typed) + len(unrecognized) > MAX_TYPED:
@@ -137,7 +131,6 @@ class MoreRequest(BaseModel):
 
 @app.post("/api/recipes")
 def more_recipes(req: MoreRequest):
-    """Next page of ranked recipes for an ingredient list. Never runs the CNN."""
     have = [i for i in dict.fromkeys(req.ingredients) if i in app.state.classes]
     if not have:
         raise HTTPException(400, "No valid ingredients supplied.")

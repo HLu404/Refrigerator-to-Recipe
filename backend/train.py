@@ -1,10 +1,4 @@
-"""Train the multi-label FoodCNN on Clean_Data.csv + the flat image folder.
-
-Usage:
-    cd backend && ../.venv/bin/python train.py --images /Users/harry/Downloads/All
-
-Outputs (in --out-dir, default backend/artifacts): best_model.pth, class_mapping.json
-"""
+# Train the multi-label FoodCNN on Clean_Data.csv + the flat image folder.
 import argparse
 import csv
 import json
@@ -29,7 +23,6 @@ def clean_name(col):
 
 
 def load_labels(csv_path, images_dir, drop_empty=True):
-    """Return (class_names, [(image_path, multi-hot np.float32 vector)])."""
     with open(csv_path, newline="") as f:
         reader = csv.reader(f)
         header = next(reader)
@@ -87,7 +80,6 @@ def pick_device():
 
 
 def f1_scores(probs, targets, thr):
-    """Micro and macro F1 given (N, C) probs/targets and thr (scalar or (C,))."""
     pred = probs >= thr
     t = targets.astype(bool)
     tp = (pred & t).sum(0)
@@ -99,7 +91,6 @@ def f1_scores(probs, targets, thr):
 
 
 def tune_thresholds(probs, targets, grid=np.arange(0.1, 0.91, 0.05), default=0.5):
-    """Per-class threshold maximizing F1 on validation; falls back to default for rare classes."""
     thr = np.full(probs.shape[1], default, dtype=np.float32)
     for c in range(probs.shape[1]):
         if targets[:, c].sum() < 3:
@@ -172,7 +163,6 @@ def main():
                         num_workers=args.workers, pin_memory=pin,
                         persistent_workers=args.workers > 0)
 
-    # Class imbalance (31 .. 2847 positives): weight positives by sqrt(neg/pos), capped.
     Y = np.stack([y for _, y in train_s])
     pos = Y.sum(0).clip(min=1)
     pos_weight = torch.tensor(np.sqrt((len(Y) - pos) / pos).clip(1, 10), dtype=torch.float32)

@@ -12,9 +12,8 @@ const state = {
   searchId: 0,          // guards against out-of-order responses
 };
 
-/* ---------- helpers ---------- */
+// helpers 
 
-// Recipe text comes from a third-party dataset, so everything is inserted as text, never HTML.
 function el(tag, className, text) {
   const e = document.createElement(tag);
   if (className) e.className = className;
@@ -36,7 +35,7 @@ function showError(msg) {
   box.hidden = !msg;
 }
 
-/* ---------- photo input ---------- */
+// photo input 
 
 function setPhoto(file) {
   showError("");
@@ -64,7 +63,7 @@ const dz = $("dropzone");
 ["dragleave", "drop"].forEach((ev) => dz.addEventListener(ev, (e) => { e.preventDefault(); dz.classList.remove("drag"); }));
 dz.addEventListener("drop", (e) => e.dataTransfer.files[0] && setPhoto(e.dataTransfer.files[0]));
 
-/* ---------- ingredient tags ---------- */
+// ingredient tags 
 
 function renderTags() {
   const list = $("tags");
@@ -107,7 +106,7 @@ tagInput.addEventListener("paste", (e) => {
 tagInput.addEventListener("blur", () => { if (tagInput.value.trim()) { addTags(tagInput.value); tagInput.value = ""; } });
 $("tag-box").addEventListener("click", () => tagInput.focus());
 
-/* ---------- rendering ---------- */
+// rendering 
 
 function chipList(items, withConfidence) {
   const wrap = el("div", "chips");
@@ -208,7 +207,7 @@ function appendRecipes(recipes) {
   state.shown += recipes.length;
 }
 
-/* ---------- search + pagination ---------- */
+// search 
 
 async function postJson(url, payload) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -269,7 +268,6 @@ async function seeMore() {
   btn.disabled = true;
   btn.textContent = "Loading...";
   try {
-    // Reuses the ingredient list from the last search; the photo is not re-analyzed.
     const res = await postJson("/api/recipes", { ingredients: state.active, offset: state.shown });
     if (!res.ok) throw new Error(await readError(res));
     const data = await res.json();

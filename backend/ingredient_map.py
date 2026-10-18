@@ -1,15 +1,4 @@
-"""Map free-text recipe ingredients (e.g. "boneless skinless chicken breasts") onto the
-standardized classes the CNN predicts (e.g. "chicken").
-
-classify(text) -> ("class", name) | ("staple", None) | ("other", None)
-  class  : one of the CNN classes
-  staple : salt, oil, spices and similar basics (stored separately; counted as missing like "other")
-  other  : anything else; counts as a missing ingredient
-
-Within one ingredient string the class whose match ends furthest right wins (the head
-noun is usually last: "grape tomatoes" -> tomato, "cream cheese" -> cheese), with ties
-going to the longer match ("sweet potato" beats "potato").
-"""
+# Map free-text recipe ingredients
 import re
 
 # Words that mean the item is a processed/derived product, not the fresh food itself.
@@ -28,7 +17,7 @@ STAPLE = re.compile(
     r"fennel seeds?|sesame seeds?|cloves)\b"
 )
 
-# class -> (include regex, optional exclude regex). Order is irrelevant (see module docstring).
+# classes
 RULES = {
     "asparagus": (r"asparagus", None),
     "avocado": (r"avocados?", None),
@@ -98,7 +87,7 @@ def classify(text, allowed=None):
     """Classify one ingredient string. `allowed` optionally restricts to a set of class names."""
     t = re.sub(r"[^a-z0-9ñ\- ]", " ", text.lower())
     t = re.sub(r"\s+", " ", t).strip()
-    best = None  # (end, span_length, name)
+    best = None
     if not STOP.search(t):
         for name, (inc, exc) in _COMPILED.items():
             if allowed is not None and name not in allowed:
