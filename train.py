@@ -147,7 +147,7 @@ def main():
     ap.add_argument("--img-size", type=int, default=224)
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--patience", type=int, default=10, help="early-stopping patience (epochs)")
-    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--workers", type=int, default=0)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--keep-empty", action="store_true", help="keep images with no positive label")
     args = ap.parse_args()

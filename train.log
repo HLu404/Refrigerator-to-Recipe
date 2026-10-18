@@ -1,0 +1,9 @@
+device: mps
+9006 samples, 57 classes (skipped 0 missing files, 179 with no labels)
+train 7656 / val 1350
+epoch   1  train_loss 0.4992  val_loss 0.3421  F1 micro 0.539 macro 0.347
+  saved best_model.pth (macro F1 0.347, tuned-threshold micro/macro (0.5191090736957497, 0.43291119859987787))
+epoch   2  train_loss 0.3398  val_loss 0.3205  F1 micro 0.544 macro 0.373
+  saved best_model.pth (macro F1 0.373, tuned-threshold micro/macro (0.5471439129975715, 0.45204489470294096))
+epoch   3  train_loss 0.3170  val_loss 0.3120  F1 micro 0.529 macro 0.355
+epoch   4  train_loss 0.3072  val_loss 0.3147  F1 micro 0.515 macro 0.366

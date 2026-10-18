@@ -4,3 +4,6 @@ numpy
 Pillow
 psycopg2-binary
 certifi
+fastapi
+uvicorn[standard]
+python-multipart
