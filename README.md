@@ -7,6 +7,16 @@ and a PostgreSQL query ranks recipes from the closest ingredient match to the lo
 Each recipe card shows a photo of the finished dish, every ingredient with its exact amount
 (highlighting what you have and what you need), and numbered cooking steps.
 
+## Sample Images
+
+Main Page:
+<img width="1470" height="807" alt="image" src="https://github.com/user-attachments/assets/ae337bee-a60b-4c6c-a747-d073f7a187fa" />
+
+Uploading a Recipe:
+<img width="672" height="746" alt="image" src="https://github.com/user-attachments/assets/9bee0e68-1eb0-4813-80a7-dc96961f9e70" />
+<img width="497" height="712" alt="image" src="https://github.com/user-attachments/assets/01417290-4ede-44b9-b6fe-cf9190f2712e" />
+
+
 ## Features
 
 - **Three ways to search:** upload a photo, type ingredients, or combine both. Detected and typed
